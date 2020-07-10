@@ -1,17 +1,16 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import logo from './logo.svg';
-import { BrowserRouter as Router, Route, Switch, Link, Redirect, useHistory, useLocation } from 'react-router-dom';
-import Home from './pages/home';
-import ArticlePage from './pages/article'
+import React, { Suspense ,useState, useEffect, useCallback } from 'react';
+import { Route,Link, useHistory, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext'
 import { doGetCategories } from './api/categoryApi';
 import { doGetPopularArticle } from './api/articleApi';
-import _ from 'lodash'
 import ROUTES from "./ultis/routes";
 import { doGetTags } from './api/tagApi';
 import Loading from 'react-loading';
 import "./App.css";
-import CategoryPage from './pages/category';
+
+const CategoryPage = React.lazy(()=> import('./pages/category'))
+const ArticlePage = React.lazy(()=>import('./pages/article'))
+const HomePage = React.lazy(()=> import('./pages/home'))
 
 const App = () => {
   const [categories, setCategories] = useState([])
@@ -48,6 +47,7 @@ const App = () => {
   }
   return (
       <AppProvider value={{ categories, popular_article, tags }}>
+        <Suspense fallback={<Loading/>}>
         <div className="App">
           <div id="colorlib-page">
             <a href="#" id="nav-toggle" onClick={() => toggleNavbar()} className="js-colorlib-nav-toggle colorlib-nav-toggle"><i /></a>
@@ -73,9 +73,9 @@ const App = () => {
               </div>
             </aside> {/* END ASIDE */}
             <div id="colorlib-main">
-              <Route path="/trang-chu?page=page" component={Home} />
-              <Route exact path="/trang-chu" component={Home} />
-              <Route path="/trang-chu/?page=:page" component={Home} />
+              <Route path="/trang-chu?page=page" component={HomePage} />
+              <Route exact path="/trang-chu" component={HomePage} />
+              <Route path="/trang-chu/?page=:page" component={HomePage} />
               <Route path="/bai-viet/:id?" component={ArticlePage} />
               <Route exact path={ROUTES.CODING_ROUTE} render={(props)=>{
                   return <CategoryPage {...props} type={1} />
@@ -90,6 +90,7 @@ const App = () => {
           </div>
           {/* Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. */}
         </div>
+        </Suspense>
       </AppProvider>
 
   );

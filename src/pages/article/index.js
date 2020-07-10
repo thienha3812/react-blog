@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { Suspense, useState, memo, useEffect, useContext, useRef } from 'react'
 import { doGetArticleByID } from '../../api/articleApi'
 import { useParams, Link } from 'react-router-dom'
 import _ from 'lodash'
@@ -9,6 +9,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import golang from 'highlight.js/lib/languages/go';
 import { AppContext } from '../../AppContext';
 import styled from 'styled-components'
+import ROUTES from '../../ultis/routes';
 const UserIcon = require('../../assets/user.png')
 
 
@@ -114,120 +115,124 @@ const ArticlePage = () => {
         }
     }
     return (
-        <section className="ftco-section ftco-no-pt ftco-no-pb">
-            <div className="container">
-                <div className="row d-flex">
-                    <div className="col-lg-8 px-md-5 py-5">
-                        <h1 class="mb-3">{article.title}</h1>
-                        <DarkTheme>
-                            <div className="row ml-0" ref={nodeRef} style={{ display: "block" }} dangerouslySetInnerHTML={createMarkup()}>
-                            </div>
-                        </DarkTheme>
-                        <div className="row" >
-                            <div class="tag-widget post-tag-container mb-5">
-                                <div class="tagcloud">
-                                    {
-                                        tags.map((tag, index) => (
-                                            <>
+        <>
+            <section className="ftco-section ftco-no-pt ftco-no-pb">
+                <div className="container">
+                    <div className="row d-flex">
+                        <div className="col-lg-8 px-md-5 py-5">
+                            <h1 class="mb-3">{article.title}</h1>
+                            <DarkTheme>
+                                <div className="row ml-0" ref={nodeRef} style={{ display: "block" }} dangerouslySetInnerHTML={createMarkup()}>
+                                </div>
+                            </DarkTheme>
+                            <div className="row" >
+                                <div class="tag-widget post-tag-container mb-5">
+                                    <div class="tagcloud">
+                                        {
+                                            tags.map((tag, index) => (
+                                                <>
 
-                                                <Link key={index} to="#" class="tag-cloud-link">{_.get(tag, 'content')}</Link>
+                                                    <Link key={index} to="#" class="tag-cloud-link">{_.get(tag, 'content')}</Link>
+                                                </>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="mb-5 font-weight-bold">{'Bình luận'}</h3>
+                                <ul className="comment-list">
+                                    {
+                                        comments.map((comment, index) => (
+                                            <>
+                                                <li className="comment" key={index}>
+                                                    <div className="vcard bio">
+                                                        <img src={UserIcon} height="50" width="50" alt="Image placeholder" />
+                                                    </div>
+                                                    <div className="comment-body">
+                                                        <h3>{_.get(comment, 'name')}</h3>
+                                                        <div className="meta">{moment(comment.createdAt).format('MMM DD YYYY')}</div>
+                                                        <p>{_.get(comment, 'message', '')}</p>
+                                                    </div>
+                                                </li>
                                             </>
                                         ))
                                     }
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="mb-5 font-weight-bold">{'Bình luận'}</h3>
-                            <ul className="comment-list">
-                                {
-                                    comments.map((comment, index) => (
-                                        <>
-                                            <li className="comment" key={index}>
-                                                <div className="vcard bio">
-                                                    <img src={UserIcon} height="50" width="50" alt="Image placeholder" />
-                                                </div>
-                                                <div className="comment-body">
-                                                    <h3>{_.get(comment, 'name')}</h3>
-                                                    <div className="meta">{moment(comment.createdAt).format('MMM DD YYYY')}</div>
-                                                    <p>{_.get(comment, 'message', '')}</p>
-                                                </div>
-                                            </li>
-                                        </>
-                                    ))
-                                }
-                            </ul></div>
-                        {/* END comment-list */}
-                        <div className="comment-form-wrap pt-5">
-                            <h3 className="mb-5">Để lại bình luận của bạn</h3>
-                            <div className="form-group">
-                                <label htmlFor="name">Họ và tên</label>
-                                <input type="text" className="form-control" id="name" />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="message">Tin nhắn</label>
-                                <textarea name id="message" cols={30} rows={10} className="form-control" defaultValue={""} />
-                            </div>
-                            <div className="form-group">
-                                <button className="btn py-3 px-4 btn-primary">Gửi</button>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div className="col-lg-4 sidebar  bg-light pt-5">
-                        <div className="sidebar-box pt-md-4">
-                            <form action="#" className="search-form">
+                                </ul></div>
+                            {/* END comment-list */}
+                            <div className="comment-form-wrap pt-5">
+                                <h3 className="mb-5">Để lại bình luận của bạn</h3>
                                 <div className="form-group">
-                                    <span className="icon icon-search" />
-                                    <input type="text" className="form-control" placeholder="Tìm kiếm bài viết" />
+                                    <label htmlFor="name">Họ và tên</label>
+                                    <input type="text" className="form-control" id="name" />
                                 </div>
-                            </form>
+                                <div className="form-group">
+                                    <label htmlFor="message">Tin nhắn</label>
+                                    <textarea name id="message" cols={30} rows={10} className="form-control" defaultValue={""} />
+                                </div>
+                                <div className="form-group">
+                                    <button className="btn py-3 px-4 btn-primary">Gửi</button>
+                                </div>
+                            </div>
+
                         </div>
-                        <div className="sidebar-box ">
-                            <h3 className="sidebar-heading">Phân loại</h3>
-                            <ul className="categories">
-                                {
-                                    categories.map((category, index) => (
-                                        <>
-                                            <li key={index}>
-                                                <Link to="#">{_.get(category, 'content')}<span>({_.get(category, 'count_article')})</span></Link>
-                                            </li>
-                                        </>
-                                    ))
-                                }
-                            </ul>
-                        </div>
-                        <div className="sidebar-box ">
-                            <h3 className="sidebar-heading">Lượt đọc nhiều nhất</h3>
-                            {popular_article.map((article, index) => (
-                                <>
-                                    <div key={index} className="block-21 mb-4 d-flex">
-                                        <a className="blog-img mr-4" style={{ backgroundImage: `url(${'http://23.97.77.60:1337' + _.get(article, 'banner.url')})` }} />
-                                        <div className="text">
-                                            <h3 className="heading"><a href="#">{_.get(article, 'title')}</a></h3>
-                                            <div className="meta">
-                                                <div><a href="#"><span className="icon-calendar" /> {moment(article.createdAt).format("MMM DD YYYY")}</a></div>
-                                                <div><a href="#"><span className="icon-person" /> Admin</a></div>
-                                                <div><a href="#"><span className="icon-chat" /> {article.comments.length}</a></div>
+                        <div className="col-lg-4 sidebar  bg-light pt-5">
+                            <div className="sidebar-box pt-md-4">
+                                <form action="#" className="search-form">
+                                    <div className="form-group">
+                                        <span className="icon icon-search" />
+                                        <input type="text" className="form-control" placeholder="Tìm kiếm bài viết" />
+                                    </div>
+                                </form>
+                            </div>
+                            <div className="sidebar-box ">
+                                <h3 className="sidebar-heading">Phân loại</h3>
+                                <ul className="categories">
+                                    {
+                                        categories.map((category, index) => (
+                                            <>
+                                                <li key={index}>
+                                                    <Link to="#">{_.get(category, 'content')}<span>({_.get(category, 'count_article')})</span></Link>
+                                                </li>
+                                            </>
+                                        ))
+                                    }
+                                </ul>
+                            </div>
+                            <div className="sidebar-box ">
+                                <h3 className="sidebar-heading">Lượt đọc nhiều nhất</h3>
+                                {popular_article.map((article, index) => (
+                                    <>
+                                        <div key={index} className="block-21 mb-4 d-flex">
+                                            <a className="blog-img mr-4" style={{ backgroundImage: `url(${'https://ngao.tech' + _.get(article, 'banner.url')})` }} />
+                                            <div className="text">
+
+                                                <h3 className="heading">
+                                                    <Link to={ROUTES.ARTICLE_ROUTE + article._id}> {_.get(article, 'title')}</Link>
+                                                </h3>
+                                                <div className="meta">
+                                                    <div><a href="#"><span className="icon-calendar" /> {moment(article.createdAt).format("MMM DD YYYY")}</a></div>
+                                                    <div><a href="#"><span className="icon-person" /> Admin</a></div>
+                                                    <div><a href="#"><span className="icon-chat" /> {article.comments.length}</a></div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </>
-                            ))}
-                        </div>
-                        <div className="sidebar-box ">
-                            <h3 className="sidebar-heading">Tags</h3>
-                            <ul className="tagcloud">
-                                {
-                                    _tags.map((tag, index) => (
-                                        <>
-                                            <Link to="#" className="tag-cloud-link">{_.get(tag, 'content')}</Link>
-                                        </>
-                                    ))
-                                }
-                            </ul>
-                        </div>
-                        {/* <div className="sidebar-box subs-wrap img" style={{ backgroundImage: '' }}>
+                                    </>
+                                ))}
+                            </div>
+                            <div className="sidebar-box ">
+                                <h3 className="sidebar-heading">Tags</h3>
+                                <ul className="tagcloud">
+                                    {
+                                        _tags.map((tag, index) => (
+                                            <>
+                                                <Link to="#" className="tag-cloud-link">{_.get(tag, 'content')}</Link>
+                                            </>
+                                        ))
+                                    }
+                                </ul>
+                            </div>
+                            {/* <div className="sidebar-box subs-wrap img" style={{ backgroundImage: '' }}>
                             <div className="overlay" />
                             <h3 className="mb-4 sidebar-heading">Newsletter</h3>
                             <p className="mb-4">Far far away, behind the word mountains, far from the countries Vokalia</p>
@@ -238,7 +243,7 @@ const ArticlePage = () => {
                                 </div>
                             </form>
                         </div> */}
-                        {/* <div className="sidebar-box ">
+                            {/* <div className="sidebar-box ">
                             <h3 className="sidebar-heading">Lưu trữ</h3>
                                 <ul className="categories">                                    
                                     <li><a href="#">July 2020 <span>(2)</span></a></li>                                    
@@ -248,11 +253,11 @@ const ArticlePage = () => {
                             <h3 className="sidebar-heading">Paragraph</h3>
                             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus itaque, autem necessitatibus voluptate quod mollitia delectus aut.</p>
                         </div> */}
-                    </div>{/* END COL */}
+                        </div>{/* END COL */}
+                    </div>
                 </div>
-            </div>
-        </section>
-
+            </section>
+        </>
     )
 }
-export default ArticlePage
+export default memo(ArticlePage)
