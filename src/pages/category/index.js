@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useCallback, useContext, memo } from 'react';
-import { doGetArticle } from '../../api/articleApi';
+import { doGetArticle, doGetArticleByType } from '../../api/articleApi';
 import _ from 'lodash'
 import moment from 'moment';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import { AppContext } from '../../AppContext';
 import ROUTES from '../../ultis/routes';
 import "./style.css"
+import Delay from '../../components/delay';
 
 
-const Category = ({ }) => {
+const Category = ({ type }) => {
     const [articles, setArticles] = useState([])
     const [numberPage, setNumberPage] = useState(0)
     const { categories, popular_article, tags } = useContext(AppContext)
@@ -25,39 +26,28 @@ const Category = ({ }) => {
         }
     }, [location])
     useEffect(() => {
-        if (pageSelected > 0) {
-            window.scrollTo(0, 0)
-            let start = (pageSelected - 1) * 6
-            doGetArticle({ index: start }).then(response => {
-                setArticles(response.data.articles)
-                setNumberPage(response.data.number_page)
-            })
-            return
-        } else {
-            window.scrollTo(0, 0)
-            doGetArticle({ index: 0 }).then(response => {
-                setArticles(response.data.articles)
-                setNumberPage(response.data.number_page)
-            })
-            return
-        }
+        window.scrollTo(0, 0)
+        doGetArticleByType({ type, index: (pageSelected - 1) * 4 }).then(response => {
+            setArticles(response.data.articles)
+            setNumberPage(response.data.number_page)
+        })
     }, [pageSelected])
     const renderPagination = useCallback(() => {
         const list = []
-        list.push(<li className={pageSelected == 1 ? "active" : pageSelected == null && "active"} ><Link to={ROUTES.HOME_ROUTE}>1</Link></li>)
+        list.push(<li className={pageSelected == 1 ? "active" : pageSelected == null && "active"} ><Link to={location.pathname}>1</Link></li>)
         if (numberPage > maxPage) {
             for (let i = 2; i <= maxPage; i++) {
-                list.push(<li className={i == pageSelected && "active"} ><Link to={ROUTES.HOME_ROUTE + "?page=" + i}>{i}</Link></li>)
+                list.push(<li className={i == pageSelected && "active"} ><Link to={location.pathname + "?page=" + i}>{i}</Link></li>)
             }
         } else {
             for (let i = 2; i <= numberPage; i++) {
-                list.push(<li className={i == pageSelected && "active"} ><Link to={ROUTES.HOME_ROUTE + "?page=" + i}>{i}</Link></li>)
+                list.push(<li className={i == pageSelected && "active"} ><Link to={location.pathname + "?page=" + i}>{i}</Link></li>)
             }
         }
         return list
-    }, [numberPage, pageSelected])
+    }, [numberPage, pageSelected, location.pathname])
     const prevPage = (e) => {
-        if (Number.parseInt(pageSelected) === 1) {
+        if (Number.parseInt(pageSelected) === 1 || null) {
             e.preventDefault()
         }
     }
@@ -70,19 +60,18 @@ const Category = ({ }) => {
         <>
             <section className="ftco-section ftco-no-pt ftco-no-pb">
                 <div className="container">
-                    <div className="row d-flex">
-
+                    <div className="row d-flex h-auto">
                         <div className="col-xl-8 py-5 px-md-5">
                             <div className="row">
-                                <h1>Danh mục lập trình</h1>
+                                <h1>Danh mục {type === 1 && 'lập trình'} {type === 2 && 'công nghệ'} {type === 3 && 'chuyện bên lề'}</h1>
                             </div>
                             <div className="row pt-md-4">
                                 {
                                     articles.slice(0, 6).map((article, index) => (
                                         <>
                                             <div className="row">
-                                                <div className="col-md-12 banner" style={{ backgroundImage: `url(${'http://23.97.77.60:1337' + _.get(article, 'banner.url')})`}}/> 
-                                                <div className="col-md-12" key={{ index }}>
+                                                <div className="col-md-12 banner" style={{ backgroundImage: `url(${'http://23.97.77.60:1337' + _.get(article, 'banner.url')})` }} />
+                                                <div className="col-md-12" >
                                                     <div className="blog-entry  d-md-flex">
                                                         <div className="text text-2 w-100">
                                                             <h3 className="mb-2">
@@ -112,18 +101,22 @@ const Category = ({ }) => {
                                     ))
                                 }
                             </div>{/* END*/}
-                            <div className="row">
-                                <div className="col">
-                                    <div className="block-27">
-                                        <ul>
-                                            <li><Link onClick={(e) => prevPage(e)} to={pageSelected > 0 && ROUTES.HOME_ROUTE + `?page=${Number.parseInt(pageSelected) - 1}`}>&lt;</Link></li>
-                                            {renderPagination()}
-                                            <li ><Link onClick={(e) => nextPage(e)} to={pageSelected < numberPage && ROUTES.HOME_ROUTE + `?page=${Number.parseInt(pageSelected) + 1}`} >&gt;</Link></li>
+                            <Delay delay={500}>
+                                <div className="row">
+                                    <div className="col">
+                                        <div className="block-27">
+                                            <ul>
+                                                <li><Link onClick={(e) => prevPage(e)} to={pageSelected > 0 && location.pathname + `?page=${Number.parseInt(pageSelected) - 1}`}>&lt;</Link></li>
+                                                {renderPagination()}
+                                                <li ><Link onClick={(e) => nextPage(e)} to={pageSelected < numberPage && location.pathname + `?page=${Number.parseInt(pageSelected) + 1}`} >&gt;</Link></li>
 
-                                        </ul>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Delay>
+
+
                         </div>
                         <div className="col-xl-4 sidebar  bg-light pt-5">
                             <div className="sidebar-box pt-md-4">
@@ -178,16 +171,16 @@ const Category = ({ }) => {
                                     }
                                 </ul>
                             </div>
-                            <div className="sidebar-box ">
+                            {/* <div className="sidebar-box ">
                                 <h3 className="sidebar-heading">Lưu trữ</h3>
                                 <ul className="categories">
                                     <li><a href="#">July 2020 <span>(2)</span></a></li>
                                 </ul>
-                            </div>
-                            <div className="sidebar-box ">
+                            </div> */}
+                            {/* <div className="sidebar-box ">
                                 <h3 className="sidebar-heading">Paragraph</h3>
                                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus itaque, autem necessitatibus voluptate quod mollitia delectus aut.</p>
-                            </div>
+                            </div> */}
                         </div>{/* END COL */}
                     </div>
                 </div>

@@ -4,7 +4,7 @@ import axios from 'axios'
 
 
 export default axios.create({
-    baseURL : 'http://23.97.77.60:3001/api/v1',
+    baseURL : 'https://ngao.tech/api/v1',
 })
 
 

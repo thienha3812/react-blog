@@ -4,23 +4,29 @@ import apiService from '../ultis/axios';
 
 export async function doGetArticle({ category = '', limit = 6, index = 0 }) {
     const response = await apiService({
-        url: `/article?index=${index}&limit=${limit}` ,
-        method: 'GET',        
+        url: `/article?index=${index}&limit=${limit}`,
+        method: 'GET',
     })
-    console.log(response.data)
     return response
 }
-export async function doGetArticleByID({id}){
+export async function doGetArticleByID({ id }) {
     const response = await apiService({
-        url : '/article/id/' + id,
-        method :'GET'
+        url: '/article/id/' + id,
+        method: 'GET'
     })
     return response;
 }
-export async function doGetPopularArticle(){
+export async function doGetPopularArticle() {
     const response = await apiService({
-        url : '/article/popular',
-        method : 'GET'
+        url: '/article/popular',
+        method: 'GET'
+    })
+    return response
+}
+export async function doGetArticleByType({ index = 0, type }) {
+    const response = await apiService({
+        url: '/article/type?type=' + type + "&index=" + index,
+        method: 'GET'
     })
     return response
 }

@@ -1,28 +1,117 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { doGetArticleByID } from '../../api/articleApi'
 import { useParams, Link } from 'react-router-dom'
 import _ from 'lodash'
 import DOMPurify from 'dompurify';
 import moment from 'moment'
+import hljs from 'highlight.js';
+import javascript from 'highlight.js/lib/languages/javascript';
+import golang from 'highlight.js/lib/languages/go';
 import { AppContext } from '../../AppContext';
+import styled from 'styled-components'
 const UserIcon = require('../../assets/user.png')
 
 
+const DarkTheme = styled.div`
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    background: #282a36;
+  }
+  
+  .hljs-built_in,
+  .hljs-selector-tag,
+  .hljs-section,
+  .hljs-link {
+    color: #8be9fd;
+  }
+  
+  .hljs-keyword {
+    color: #ff79c6;
+  }
+  
+  .hljs,
+  .hljs-subst {
+    color: #f8f8f2;
+  }
+  
+  .hljs-title {
+    color: #50fa7b;
+  }
+  
+  .hljs-string,
+  .hljs-meta,
+  .hljs-name,
+  .hljs-type,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-addition,
+  .hljs-variable,
+  .hljs-template-tag,
+  .hljs-template-variable {
+    color: #f1fa8c;
+  }
+  
+  .hljs-comment,
+  .hljs-quote,
+  .hljs-deletion {
+    color: #6272a4;
+  }
+  
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-title,
+  .hljs-section,
+  .hljs-doctag,
+  .hljs-type,
+  .hljs-name,
+  .hljs-strong {
+    font-weight: bold;
+  }
+  
+  .hljs-literal,
+  .hljs-number {
+    color: #bd93f9;
+  }
+  
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  
+`
 
+
+hljs.registerLanguage('Javascript', javascript);
+hljs.registerLanguage('Golang', golang);
 
 const ArticlePage = () => {
     const [article, setArticle] = useState({ tags: {}, content: '', title: '', comments: [], tags: [] })
     const params = useParams()
     const { comments, tags } = article
-    const { categories } = useContext(AppContext)
+    const nodeRef = useRef(null)
+    const { categories, tags: _tags, popular_article } = useContext(AppContext)
     useEffect(() => {
-        window.scrollTo(0,0)
+        window.scrollTo(0, 0)
         doGetArticleByID({ id: params.id }).then((response) => {
             setArticle(response.data)
         })
+        setTimeout(() => {
+            highlight()
+        }, 500)
     }, [])
     const createMarkup = () => {
         return { __html: DOMPurify.sanitize(_.unescape(article.content)) }
+    }
+    const highlight = () => {
+        const nodes = nodeRef.current.querySelectorAll('pre')
+        if (nodes) {
+            nodes.forEach(node => {
+                hljs.highlightBlock(node);
+            })
+        }
     }
     return (
         <section className="ftco-section ftco-no-pt ftco-no-pb">
@@ -30,8 +119,10 @@ const ArticlePage = () => {
                 <div className="row d-flex">
                     <div className="col-lg-8 px-md-5 py-5">
                         <h1 class="mb-3">{article.title}</h1>
-                        <div className="row ml-0" style={{ display: "block" }} dangerouslySetInnerHTML={createMarkup()}>
-                        </div>
+                        <DarkTheme>
+                            <div className="row ml-0" ref={nodeRef} style={{ display: "block" }} dangerouslySetInnerHTML={createMarkup()}>
+                            </div>
+                        </DarkTheme>
                         <div className="row" >
                             <div class="tag-widget post-tag-container mb-5">
                                 <div class="tagcloud">
@@ -59,7 +150,7 @@ const ArticlePage = () => {
                                                 <div className="comment-body">
                                                     <h3>{_.get(comment, 'name')}</h3>
                                                     <div className="meta">{moment(comment.createdAt).format('MMM DD YYYY')}</div>
-                                                    <p>{_.get(comment,'message','')}</p>                                                    
+                                                    <p>{_.get(comment, 'message', '')}</p>
                                                 </div>
                                             </li>
                                         </>
@@ -83,7 +174,7 @@ const ArticlePage = () => {
                         </div>
 
                     </div>
-                    <div className="col-lg-4 sidebar doGetArticle bg-light pt-5">
+                    <div className="col-lg-4 sidebar  bg-light pt-5">
                         <div className="sidebar-box pt-md-4">
                             <form action="#" className="search-form">
                                 <div className="form-group">
@@ -92,7 +183,7 @@ const ArticlePage = () => {
                                 </div>
                             </form>
                         </div>
-                        <div className="sidebar-box doGetArticle">
+                        <div className="sidebar-box ">
                             <h3 className="sidebar-heading">Phân loại</h3>
                             <ul className="categories">
                                 {
@@ -106,56 +197,37 @@ const ArticlePage = () => {
                                 }
                             </ul>
                         </div>
-                        <div className="sidebar-box doGetArticle">
-                            <h3 className="sidebar-heading">Popular Articles</h3>
-                            <div className="block-21 mb-4 d-flex">
-                                <a className="blog-img mr-4" style={{ backgroundImage: 'url(images/image_1.jpg)' }} />
-                                <div className="text">
-                                    <h3 className="heading"><a href="#">Even the all-powerful Pointing has no control</a></h3>
-                                    <div className="meta">
-                                        <div><a href="#"><span className="icon-calendar" /> June 28, 2019</a></div>
-                                        <div><a href="#"><span className="icon-person" /> Dave Lewis</a></div>
-                                        <div><a href="#"><span className="icon-chat" /> 19</a></div>
+                        <div className="sidebar-box ">
+                            <h3 className="sidebar-heading">Lượt đọc nhiều nhất</h3>
+                            {popular_article.map((article, index) => (
+                                <>
+                                    <div key={index} className="block-21 mb-4 d-flex">
+                                        <a className="blog-img mr-4" style={{ backgroundImage: `url(${'http://23.97.77.60:1337' + _.get(article, 'banner.url')})` }} />
+                                        <div className="text">
+                                            <h3 className="heading"><a href="#">{_.get(article, 'title')}</a></h3>
+                                            <div className="meta">
+                                                <div><a href="#"><span className="icon-calendar" /> {moment(article.createdAt).format("MMM DD YYYY")}</a></div>
+                                                <div><a href="#"><span className="icon-person" /> Admin</a></div>
+                                                <div><a href="#"><span className="icon-chat" /> {article.comments.length}</a></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div className="block-21 mb-4 d-flex">
-                                <a className="blog-img mr-4" style={{ backgroundImage: 'url(images/image_2.jpg)' }} />
-                                <div className="text">
-                                    <h3 className="heading"><a href="#">Even the all-powerful Pointing has no control</a></h3>
-                                    <div className="meta">
-                                        <div><a href="#"><span className="icon-calendar" /> June 28, 2019</a></div>
-                                        <div><a href="#"><span className="icon-person" /> Dave Lewis</a></div>
-                                        <div><a href="#"><span className="icon-chat" /> 19</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="block-21 mb-4 d-flex">
-                                <a className="blog-img mr-4" style={{ backgroundImage: 'url(images/image_3.jpg)' }} />
-                                <div className="text">
-                                    <h3 className="heading"><a href="#">Even the all-powerful Pointing has no control</a></h3>
-                                    <div className="meta">
-                                        <div><a href="#"><span className="icon-calendar" /> June 28, 2019</a></div>
-                                        <div><a href="#"><span className="icon-person" /> Dave Lewis</a></div>
-                                        <div><a href="#"><span className="icon-chat" /> 19</a></div>
-                                    </div>
-                                </div>
-                            </div>
+                                </>
+                            ))}
                         </div>
-                        <div className="sidebar-box doGetArticle">
-                            <h3 className="sidebar-heading">Tag Cloud</h3>
+                        <div className="sidebar-box ">
+                            <h3 className="sidebar-heading">Tags</h3>
                             <ul className="tagcloud">
-                                <a href="#" className="tag-cloud-link">animals</a>
-                                <a href="#" className="tag-cloud-link">human</a>
-                                <a href="#" className="tag-cloud-link">people</a>
-                                <a href="#" className="tag-cloud-link">cat</a>
-                                <a href="#" className="tag-cloud-link">dog</a>
-                                <a href="#" className="tag-cloud-link">nature</a>
-                                <a href="#" className="tag-cloud-link">leaves</a>
-                                <a href="#" className="tag-cloud-link">food</a>
+                                {
+                                    _tags.map((tag, index) => (
+                                        <>
+                                            <Link to="#" className="tag-cloud-link">{_.get(tag, 'content')}</Link>
+                                        </>
+                                    ))
+                                }
                             </ul>
                         </div>
-                        <div className="sidebar-box subs-wrap img" style={{ backgroundImage: '' }}>
+                        {/* <div className="sidebar-box subs-wrap img" style={{ backgroundImage: '' }}>
                             <div className="overlay" />
                             <h3 className="mb-4 sidebar-heading">Newsletter</h3>
                             <p className="mb-4">Far far away, behind the word mountains, far from the countries Vokalia</p>
@@ -165,8 +237,8 @@ const ArticlePage = () => {
                                     <input type="submit" defaultValue="Subscribe" className="mt-2 btn btn-white submit" />
                                 </div>
                             </form>
-                        </div>
-                        <div className="sidebar-box ">
+                        </div> */}
+                        {/* <div className="sidebar-box ">
                             <h3 className="sidebar-heading">Lưu trữ</h3>
                                 <ul className="categories">                                    
                                     <li><a href="#">July 2020 <span>(2)</span></a></li>                                    
@@ -175,7 +247,7 @@ const ArticlePage = () => {
                         <div className="sidebar-box">
                             <h3 className="sidebar-heading">Paragraph</h3>
                             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus itaque, autem necessitatibus voluptate quod mollitia delectus aut.</p>
-                        </div>
+                        </div> */}
                     </div>{/* END COL */}
                 </div>
             </div>
