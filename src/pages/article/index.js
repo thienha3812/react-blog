@@ -5,8 +5,6 @@ import _ from 'lodash'
 import DOMPurify from 'dompurify';
 import moment from 'moment'
 import hljs from 'highlight.js';
-import javascript from 'highlight.js/lib/languages/javascript';
-import golang from 'highlight.js/lib/languages/go';
 import { AppContext } from '../../AppContext';
 import styled from 'styled-components'
 import ROUTES from '../../ultis/routes';
@@ -72,7 +70,9 @@ const DarkTheme = styled.div`
   .hljs-strong {
     font-weight: bold;
   }
-  
+.hljs-name, .hljs-attribute {
+      color:#DC143C;
+  }
   .hljs-literal,
   .hljs-number {
     color: #bd93f9;
@@ -85,8 +85,8 @@ const DarkTheme = styled.div`
 `
 
 
-hljs.registerLanguage('Javascript', javascript);
-hljs.registerLanguage('Golang', golang);
+
+
 
 const ArticlePage = () => {
     const [article, setArticle] = useState({ tags: {}, content: '', title: '', comments: [], tags: [] })
@@ -104,13 +104,13 @@ const ArticlePage = () => {
         }, 500)
     }, [])
     const createMarkup = () => {
-        return { __html: DOMPurify.sanitize(_.unescape(article.content)) }
+        return { __html: DOMPurify.sanitize(article.content) }
     }
     const highlight = () => {
         const nodes = nodeRef.current.querySelectorAll('pre')
         if (nodes) {
             nodes.forEach(node => {
-                hljs.highlightBlock(node);
+                hljs.highlightBlock(node)
             })
         }
     }
@@ -208,7 +208,7 @@ const ArticlePage = () => {
                                             <div className="text">
 
                                                 <h3 className="heading">
-                                                    <Link to={ROUTES.ARTICLE_ROUTE + article._id}> {_.get(article, 'title')}</Link>
+                                                    <Link replace={ROUTES.ARTICLE_ROUTE + article._id}> {_.get(article, 'title')}</Link>
                                                 </h3>
                                                 <div className="meta">
                                                     <div><a href="#"><span className="icon-calendar" /> {moment(article.createdAt).format("MMM DD YYYY")}</a></div>
