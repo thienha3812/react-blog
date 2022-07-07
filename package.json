@@ -9,7 +9,7 @@
     "dompurify": "^2.0.12",
     "highlight.js": "^10.1.1",
     "lodash": "^4.17.15",
-    "moment": "^2.27.0",
+    "moment": "^2.29.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-lazyload": "^3.0.0",
